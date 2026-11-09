@@ -1,0 +1,9 @@
+# Python
+.venv/
+__pycache__/
+
+# Internal pilot proposal and planning material (documents, visuals, generated PDF): kept local
+proposal/
+
+# macOS
+.DS_Store
