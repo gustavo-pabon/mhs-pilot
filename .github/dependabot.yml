@@ -1,0 +1,13 @@
+# Opens a weekly pull request to update the GitHub Actions that the workflows pin to commit SHAs. The cooldown skips
+# versions released in the last 7 days, giving time for a compromised release to be caught first.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]

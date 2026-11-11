@@ -1,5 +1,6 @@
-# Tests and builds bookoo-themis-ultra-mcp when a push to main or a pull request changes it. Pushing a tag named
-# bookoo-themis-ultra-mcp-v<version> also publishes that version to PyPI through Trusted Publishing.
+# Tests and builds bookoo-themis-ultra-mcp on every pull request and on pushes to main that change it. Pushing a tag
+# named bookoo-themis-ultra-mcp-v<version> also publishes that version to PyPI through Trusted Publishing, once a
+# reviewer approves the deployment to the pypi environment.
 name: bookoo-themis-ultra-mcp
 
 on:
@@ -7,8 +8,8 @@ on:
     branches: [main]
     tags: ["bookoo-themis-ultra-mcp-v*"]
     paths: ["bookoo-themis-ultra-mcp/**", ".github/workflows/bookoo-themis-ultra-mcp.yml"]
+  # Not filtered by path, so the required ci-passed check reports on every pull request.
   pull_request:
-    paths: ["bookoo-themis-ultra-mcp/**", ".github/workflows/bookoo-themis-ultra-mcp.yml"]
 
 permissions:
   contents: read
@@ -23,10 +24,10 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m pip install --upgrade pip
@@ -41,10 +42,10 @@ jobs:
       run:
         working-directory: bookoo-themis-ultra-mcp
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.x"
       - run: python -m pip install build
@@ -54,10 +55,21 @@ jobs:
         run: |
           wheel="dist/bookoo_themis_ultra_mcp-${GITHUB_REF_NAME#bookoo-themis-ultra-mcp-v}-py3-none-any.whl"
           test -f "$wheel" || { echo "::error::Tag $GITHUB_REF_NAME does not match the package version: $(ls dist)"; exit 1; }
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist
           path: bookoo-themis-ultra-mcp/dist/
+
+  # The one check to require before merging into main. GitHub counts a skipped job as passed, and build is skipped
+  # when a test fails, so this job checks the results itself.
+  ci-passed:
+    if: always()
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every test and the build passed
+        if: needs.test.result != 'success' || needs.build.result != 'success'
+        run: exit 1
 
   publish:
     if: startsWith(github.ref, 'refs/tags/bookoo-themis-ultra-mcp-v')
@@ -69,8 +81,8 @@ jobs:
     permissions:
       id-token: write # Trusted Publishing
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: dist
           path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
