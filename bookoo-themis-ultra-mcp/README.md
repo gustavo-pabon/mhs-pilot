@@ -161,9 +161,10 @@ python3 -m venv .venv
 
 The tests don't need a scale.
 
-To release, update `__version__` in `src/bookoo_themis_ultra_mcp/__init__.py` and push a tag named after it, for
-example `bookoo-themis-ultra-mcp-v0.1.0`. GitHub Actions then tests the package on Python 3.10–3.14, builds it and
-publishes it to PyPI.
+To release, update `__version__` in `src/bookoo_themis_ultra_mcp/__init__.py` through a pull request. Once it's merged,
+tag that commit on `main` with the new version, for example `bookoo-themis-ultra-mcp-v0.1.1`, and push the tag. GitHub
+Actions then tests the package on Python 3.10–3.14, builds it, and publishes it to PyPI after a maintainer approves the
+deployment on the workflow run.
 
 ## License
 
