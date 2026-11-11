@@ -18,18 +18,20 @@ Privacy & Security → Bluetooth**.
 
 ## Installation
 
-From this folder:
+Install it from [PyPI](https://pypi.org/project/bookoo-themis-ultra-mcp/) into a virtual environment:
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install .
+.venv/bin/pip install bookoo-themis-ultra-mcp
 ```
 
-This installs the `bookoo-themis-ultra-mcp` command in `.venv/bin/`. It runs the server over stdio.
+This installs the `bookoo-themis-ultra-mcp` command in `.venv/bin/`. It runs the server over stdio. With
+[uv](https://docs.astral.sh/uv/), `uvx bookoo-themis-ultra-mcp` runs it without installing it first.
 
 ## Configuration
 
-Add the command to your MCP client, using its absolute path.
+Add the command to your MCP client, using its absolute path. With uv, use `"command": "uvx"` and
+`"args": ["bookoo-themis-ultra-mcp"]` instead.
 
 VS Code (`.vscode/mcp.json`):
 
@@ -38,7 +40,7 @@ VS Code (`.vscode/mcp.json`):
   "servers": {
     "bookoo-themis-ultra": {
       "type": "stdio",
-      "command": "/absolute/path/to/bookoo-themis-ultra-mcp/.venv/bin/bookoo-themis-ultra-mcp"
+      "command": "/absolute/path/to/.venv/bin/bookoo-themis-ultra-mcp"
     }
   }
 }
@@ -50,7 +52,7 @@ Claude Desktop (`claude_desktop_config.json`):
 {
   "mcpServers": {
     "bookoo-themis-ultra": {
-      "command": "/absolute/path/to/bookoo-themis-ultra-mcp/.venv/bin/bookoo-themis-ultra-mcp"
+      "command": "/absolute/path/to/.venv/bin/bookoo-themis-ultra-mcp"
     }
   }
 }
@@ -139,13 +141,18 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-- [`protocol`](src/bookoo_themis_ultra_mcp/protocol.py): builds commands and decodes data packets. No Bluetooth.
-- [`scale`](src/bookoo_themis_ultra_mcp/scale.py): `BookooScale` finds, connects to and reconnects to the scale.
-- [`server`](src/bookoo_themis_ultra_mcp/server.py): the MCP tools.
+- [`protocol`](https://github.com/gustavo-pabon/mhs-pilot/blob/main/bookoo-themis-ultra-mcp/src/bookoo_themis_ultra_mcp/protocol.py):
+  builds commands and decodes data packets. No Bluetooth.
+- [`scale`](https://github.com/gustavo-pabon/mhs-pilot/blob/main/bookoo-themis-ultra-mcp/src/bookoo_themis_ultra_mcp/scale.py):
+  `BookooScale` finds, connects to and reconnects to the scale.
+- [`server`](https://github.com/gustavo-pabon/mhs-pilot/blob/main/bookoo-themis-ultra-mcp/src/bookoo_themis_ultra_mcp/server.py):
+  the MCP tools.
 
 ## Development
 
 ```bash
+git clone https://github.com/gustavo-pabon/mhs-pilot.git
+cd mhs-pilot/bookoo-themis-ultra-mcp
 python3 -m venv .venv
 .venv/bin/pip install -e . --group dev   # needs pip 25.1 or later
 .venv/bin/pytest
@@ -154,6 +161,11 @@ python3 -m venv .venv
 
 The tests don't need a scale.
 
+To release, update `__version__` in `src/bookoo_themis_ultra_mcp/__init__.py` and push a tag named after it, for
+example `bookoo-themis-ultra-mcp-v0.1.0`. GitHub Actions then tests the package on Python 3.10–3.14, builds it and
+publishes it to PyPI.
+
 ## License
 
-[MIT](LICENSE). This project is not affiliated with or endorsed by BOOKOO.
+[MIT](https://github.com/gustavo-pabon/mhs-pilot/blob/main/bookoo-themis-ultra-mcp/LICENSE). This project is not
+affiliated with or endorsed by BOOKOO.

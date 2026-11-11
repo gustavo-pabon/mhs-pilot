@@ -1,0 +1,76 @@
+# Tests and builds bookoo-themis-ultra-mcp when a push to main or a pull request changes it. Pushing a tag named
+# bookoo-themis-ultra-mcp-v<version> also publishes that version to PyPI through Trusted Publishing.
+name: bookoo-themis-ultra-mcp
+
+on:
+  push:
+    branches: [main]
+    tags: ["bookoo-themis-ultra-mcp-v*"]
+    paths: ["bookoo-themis-ultra-mcp/**", ".github/workflows/bookoo-themis-ultra-mcp.yml"]
+  pull_request:
+    paths: ["bookoo-themis-ultra-mcp/**", ".github/workflows/bookoo-themis-ultra-mcp.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bookoo-themis-ultra-mcp
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e . --group dev
+      - run: python -m pytest
+      - run: ruff check . && ruff format --check .
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bookoo-themis-ultra-mcp
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+      - run: python -m pip install build
+      - run: python -m build
+      - name: Check that the tag matches the package version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          wheel="dist/bookoo_themis_ultra_mcp-${GITHUB_REF_NAME#bookoo-themis-ultra-mcp-v}-py3-none-any.whl"
+          test -f "$wheel" || { echo "::error::Tag $GITHUB_REF_NAME does not match the package version: $(ls dist)"; exit 1; }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: bookoo-themis-ultra-mcp/dist/
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/bookoo-themis-ultra-mcp-v')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/bookoo-themis-ultra-mcp
+    permissions:
+      id-token: write # Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

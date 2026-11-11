@@ -20,8 +20,18 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: System :: Hardware",
 ]
+
+[project.urls]
+Homepage = "https://github.com/gustavo-pabon/mhs-pilot/tree/main/bookoo-themis-ultra-mcp"
+Source = "https://github.com/gustavo-pabon/mhs-pilot"
+Issues = "https://github.com/gustavo-pabon/mhs-pilot/issues"
 
 [project.scripts]
 bookoo-themis-ultra-mcp = "bookoo_themis_ultra_mcp.server:main"
