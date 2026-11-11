@@ -5,5 +5,8 @@ __pycache__/
 # Internal pilot proposal and planning material (documents, visuals, generated PDF): kept local
 proposal/
 
+# Internal experiments
+experiments/
+
 # macOS
 .DS_Store
