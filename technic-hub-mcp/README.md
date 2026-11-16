@@ -20,19 +20,20 @@ Privacy & Security → Bluetooth**.
 
 ## Installation
 
-The server isn't on PyPI. Install it from this repository into a virtual environment:
+Install it from [PyPI](https://pypi.org/project/technic-hub-mcp/) into a virtual environment:
 
 ```bash
-git clone https://github.com/gustavo-pabon/mhs-pilot.git
 python3 -m venv .venv
-.venv/bin/pip install ./mhs-pilot/technic-hub-mcp
+.venv/bin/pip install technic-hub-mcp
 ```
 
-This installs the `technic-hub-mcp` command in `.venv/bin/`. It runs the server over stdio.
+This installs the `technic-hub-mcp` command in `.venv/bin/`. It runs the server over stdio. With
+[uv](https://docs.astral.sh/uv/), `uvx technic-hub-mcp` runs it without installing it first.
 
 ## Configuration
 
-Add the command to your MCP client, using its absolute path.
+Add the command to your MCP client, using its absolute path. With uv, use `"command": "uvx"` and
+`"args": ["technic-hub-mcp"]` instead.
 
 VS Code (`.vscode/mcp.json`):
 
@@ -230,6 +231,11 @@ python3 -m venv .venv
 ```
 
 The tests don't need a hub: they use a simulated one.
+
+To release, update `__version__` in `src/technic_hub_mcp/__init__.py` through a pull request. Once it's merged, tag
+that commit on `main` with the new version, for example `technic-hub-mcp-v0.1.1`, and push the tag. GitHub Actions
+then tests the package on Python 3.10–3.14, builds it, and publishes it to PyPI after a maintainer approves the
+deployment on the workflow run.
 
 ## License
 
