@@ -1,0 +1,90 @@
+# Tests and builds technic-hub-mcp on every pull request and on pushes to main that change it. Pushing a tag named
+# technic-hub-mcp-v<version> also publishes that version to PyPI through Trusted Publishing, once a reviewer approves
+# the deployment to the pypi environment.
+name: technic-hub-mcp
+
+on:
+  push:
+    branches: [main]
+    tags: ["technic-hub-mcp-v*"]
+    paths: ["technic-hub-mcp/**", ".github/workflows/technic-hub-mcp.yml"]
+  # Not filtered by path, so the required technic-hub-mcp-ci-passed check reports on every pull request.
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: technic-hub-mcp
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e . --group dev
+      - run: python -m pytest
+      - run: ruff check . && ruff format --check .
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: technic-hub-mcp
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.x"
+      - run: python -m pip install build
+      - run: python -m build
+      - name: Check that the tag matches the package version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          wheel="dist/technic_hub_mcp-${GITHUB_REF_NAME#technic-hub-mcp-v}-py3-none-any.whl"
+          test -f "$wheel" || { echo "::error::Tag $GITHUB_REF_NAME does not match the package version: $(ls dist)"; exit 1; }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: technic-hub-mcp/dist/
+
+  # The check to require before merging into main. GitHub counts a skipped job as passed, and build is skipped when a
+  # test fails, so this job checks the results itself. Its name differs from the job's because the
+  # bookoo-themis-ultra-mcp workflow already reports a check named ci-passed, and required checks match by name.
+  ci-passed:
+    name: technic-hub-mcp-ci-passed
+    if: always()
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every test and the build passed
+        if: needs.test.result != 'success' || needs.build.result != 'success'
+        run: exit 1
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/technic-hub-mcp-v')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/technic-hub-mcp
+    permissions:
+      id-token: write # Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3

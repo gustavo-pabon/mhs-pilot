@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "technic-hub-mcp"
+dynamic = ["version"]
+description = "MCP server that lets AI assistants read and control a LEGO Technic Hub and its motors over Bluetooth."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Gustavo Pabon" }]
+requires-python = ">=3.10"
+dependencies = ["bleak>=3.0", "mcp>=2.3"]
+keywords = ["mcp", "model-context-protocol", "bluetooth", "ble", "lego", "technic", "powered-up", "lwp3", "motor"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Hardware",
+]
+
+[project.urls]
+Homepage = "https://github.com/gustavo-pabon/mhs-pilot/tree/main/technic-hub-mcp"
+Source = "https://github.com/gustavo-pabon/mhs-pilot"
+Issues = "https://github.com/gustavo-pabon/mhs-pilot/issues"
+
+[project.scripts]
+technic-hub-mcp = "technic_hub_mcp.server:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.hatch.version]
+path = "src/technic_hub_mcp/__init__.py"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
